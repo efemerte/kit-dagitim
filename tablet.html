@@ -36,14 +36,9 @@
 <body>
 
 <script>
-  const DOC_ID      = 'wgd42pf78HoP';
-  const TABLO_DURUM = 'Durum';
-  const KOL_DURUM   = 'Aktif_No';
-  const MAX         = 5;
-  const INTERVAL_MS = 1000;
-
+  const KOL_DURUM = 'Aktif_No';
+  const MAX = 5;
   let gecmis = [];
-  let token  = null;
 
   function renderListe() {
     document.body.innerHTML = '';
@@ -63,35 +58,13 @@
     renderListe();
   }
 
-  async function tokenAl() {
-    try {
-      const result = await grist.getAccessToken({ readOnly: true });
-      token = result.token;
-    } catch(e) {
-      console.log('token alınamadı:', e);
-    }
-  }
-
-  async function durumOku() {
-    if (!token) return;
-    try {
-      const r = await fetch(
-        `https://docs.getgrist.com/api/docs/${DOC_ID}/tables/${TABLO_DURUM}/records`,
-        { headers: { 'Authorization': 'Bearer ' + token } }
-      );
-      const data = await r.json();
-      if (!data.records || data.records.length === 0) return;
-      const deger = data.records[0].fields[KOL_DURUM];
-      if (deger) ekle(deger);
-    } catch(e) {}
-  }
-
   grist.ready({ requiredAccess: 'read table' });
 
-  // Token al, sonra polling başlat
-  tokenAl().then(() => {
-    durumOku();
-    setInterval(durumOku, INTERVAL_MS);
+  // Durum tablosundaki tüm kayıtları dinle
+  grist.onRecords(function(records) {
+    if (!records || records.length === 0) return;
+    const deger = records[0][KOL_DURUM];
+    if (deger) ekle(deger);
   });
 </script>
 </body>
