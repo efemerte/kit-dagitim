@@ -45,15 +45,6 @@
   <div id="numara">—</div>
 
 <script>
-  // ─── AYARLAR ─────────────────────────────────────────
-  const API_KEY     = '323d9b3bc78b6acf80244a3b7ee0e3f34ce4ea1a';
-  const DOC_ID      = 'wgd42pf78HoP';
-  const TABLO_DURUM = 'Durum';
-  const KOL_DURUM   = 'Aktif_No';
-  const DURUM_ROW   = 1;
-  // ─────────────────────────────────────────────────────
-
-  const GRIST_API = `https://docs.getgrist.com/api/docs/${DOC_ID}/tables/${TABLO_DURUM}/records`;
   const el = document.getElementById('numara');
   let son = null;
 
@@ -65,15 +56,15 @@
     setTimeout(() => el.classList.remove('flash'), 300);
   }
 
- async function durumYaz(gogusNo) {
-  try {
-    await grist.docApi.applyUserActions([
-      ['UpdateRecord', 'Durum', 1, { Aktif_No: gogusNo }]
-    ]);
-  } catch(e) {
-    console.log('hata:', e);
+  async function durumYaz(gogusNo) {
+    try {
+      await grist.docApi.applyUserActions([
+        ['UpdateRecord', 'Durum', 1, { Aktif_No: gogusNo }]
+      ]);
+    } catch(e) {
+      console.log('yazma hatası:', e);
+    }
   }
-}
 
   grist.ready({
     requiredAccess: 'full',
@@ -87,7 +78,6 @@
     if (!deger) return;
     goster(deger);
     durumYaz(deger);
-        alert('record geldi: ' + JSON.stringify(record).slice(0, 50));
   });
 </script>
 </body>
