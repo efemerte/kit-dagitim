@@ -65,20 +65,15 @@
     setTimeout(() => el.classList.remove('flash'), 300);
   }
 
-  async function durumYaz(gogusNo) {
-    try {
-      await fetch(GRIST_API, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': 'Bearer ' + API_KEY,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          records: [{ id: DURUM_ROW, fields: { [KOL_DURUM]: gogusNo } }]
-        })
-      });
-    } catch(e) {}
+ async function durumYaz(gogusNo) {
+  try {
+    await grist.docApi.applyUserActions([
+      ['UpdateRecord', 'Durum', 1, { Aktif_No: gogusNo }]
+    ]);
+  } catch(e) {
+    console.log('hata:', e);
   }
+}
 
   grist.ready({
     requiredAccess: 'full',
