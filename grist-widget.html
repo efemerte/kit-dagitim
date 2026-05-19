@@ -74,7 +74,7 @@
     columns: [{ name: 'Gogus_No', title: 'Göğüs No', optional: true }]
   });
 
-  grist.on('record', function(record, mappings) {
+  grist.onRecord(function(record, mappings) {
     if (!record) return;
     const mapped = grist.mapColumnNames(record, mappings);
     const deger  = (mapped && mapped.Gogus_No) || record.Gogus_No || record['Göğüs No'];
