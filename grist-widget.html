@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Göğüs No Widget</title>
+  <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0a0a0a;
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+    #label {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 6px;
+      color: #444;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    #numara {
+      font-size: 20vw;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1;
+      letter-spacing: -2px;
+      transition: transform 0.15s ease, color 0.15s ease;
+    }
+    #numara.flash {
+      transform: scale(1.08);
+      color: #4a7cf7;
+    }
+  </style>
+</head>
+<body>
+  <div id="label">GÖĞÜS NUMARASI</div>
+  <div id="numara">—</div>
+
+<script>
+  // ─── AYARLAR ─────────────────────────────────────────
+  const API_KEY     = '323d9b3bc78b6acf80244a3b7ee0e3f34ce4ea1a';
+  const DOC_ID      = 'wgd42pf78HoP';
+  const TABLO_DURUM = 'Durum';
+  const KOL_DURUM   = 'Aktif_No';
+  const DURUM_ROW   = 1;
+  // ─────────────────────────────────────────────────────
+
+  const GRIST_API = `https://docs.getgrist.com/api/docs/${DOC_ID}/tables/${TABLO_DURUM}/records`;
+  const el = document.getElementById('numara');
+  let son = null;
+
+  function goster(deger) {
+    if (deger === son) return;
+    son = deger;
+    el.textContent = deger || '—';
+    el.classList.add('flash');
+    setTimeout(() => el.classList.remove('flash'), 300);
+  }
+
+  async function durumYaz(gogusNo) {
+    try {
+      await fetch(GRIST_API, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': 'Bearer ' + API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          records: [{ id: DURUM_ROW, fields: { [KOL_DURUM]: gogusNo } }]
+        })
+      });
+    } catch(e) {}
+  }
+
+  grist.ready({
+    requiredAccess: 'full',
+    columns: [{ name: 'Gogus_No', title: 'Göğüs No', optional: true }]
+  });
+
+  grist.onRecord(function(record, mappings) {
+    if (!record) return;
+    const mapped = grist.mapColumnNames(record, mappings);
+    const deger  = (mapped && mapped.Gogus_No) || record.Gogus_No || record['Göğüs No'];
+    if (!deger) return;
+    goster(deger);
+    durumYaz(deger);
+  });
+</script>
+</body>
+</html>
