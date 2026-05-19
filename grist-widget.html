@@ -17,56 +17,69 @@
       justify-content: center;
       font-family: 'Segoe UI', sans-serif;
       overflow: hidden;
+      gap: 12px;
     }
-    #label {
-      font-size: 14px;
-      font-weight: 600;
-      letter-spacing: 6px;
-      color: #444;
-      text-transform: uppercase;
-      margin-bottom: 16px;
-    }
-    #numara {
-      font-size: 20vw;
+
+    .numara-item {
       font-weight: 900;
-      color: #fff;
       line-height: 1;
       letter-spacing: -2px;
-      transition: transform 0.15s ease, color 0.15s ease;
+      transition: all 0.2s ease;
     }
-    #numara.flash {
-      transform: scale(1.08);
-      color: #4a7cf7;
+
+    .numara-item:nth-child(1) {
+      font-size: 18vw;
+      color: #fff;
+    }
+
+    .numara-item:nth-child(2) {
+      font-size: 10vw;
+      color: #444;
+    }
+
+    .numara-item:nth-child(3) {
+      font-size: 8vw;
+      color: #333;
+    }
+
+    .numara-item:nth-child(4) {
+      font-size: 6vw;
+      color: #2a2a2a;
+    }
+
+    .numara-item:nth-child(5) {
+      font-size: 5vw;
+      color: #222;
+    }
+
+    .flash {
+      color: #4a7cf7 !important;
+      transform: scale(1.05);
     }
   </style>
 </head>
 <body>
-  <div id="label">GÖĞÜS NUMARASI</div>
-  <div id="numara">—</div>
 
 <script>
-  const el = document.getElementById('numara');
-  let son = null;
+  const MAX = 5;
+  let gecmis = [];
 
-  function goster(deger) {
-    if (deger === son) return;
-    son = deger;
-    el.textContent = deger || '—';
-    el.classList.add('flash');
-    setTimeout(() => el.classList.remove('flash'), 300);
+  function renderListe() {
+    document.body.innerHTML = '';
+    gecmis.forEach((no, i) => {
+      const div = document.createElement('div');
+      div.className = 'numara-item' + (i === 0 ? ' flash' : '');
+      div.textContent = no;
+      document.body.appendChild(div);
+      if (i === 0) setTimeout(() => div.classList.remove('flash'), 400);
+    });
   }
 
-  async function durumYaz(gogusNo) {
-    console.log('durumYaz çağrıldı:', gogusNo);
-    console.log('grist.docApi:', typeof grist.docApi);
-    try {
-      const sonuc = await grist.docApi.applyUserActions([
-        ['UpdateRecord', 'Durum', 1, { Aktif_No: gogusNo }]
-      ]);
-      console.log('başarılı:', sonuc);
-    } catch(e) {
-      console.log('hata:', e.message);
-    }
+  function ekle(deger) {
+    if (gecmis[0] === deger) return;
+    gecmis.unshift(deger);
+    if (gecmis.length > MAX) gecmis.pop();
+    renderListe();
   }
 
   grist.ready({
@@ -79,8 +92,10 @@
     const mapped = grist.mapColumnNames(record, mappings);
     const deger  = (mapped && mapped.Gogus_No) || record.Gogus_No || record['Göğüs No'];
     if (!deger) return;
-    goster(deger);
-    durumYaz(deger);
+    ekle(deger);
+    grist.docApi.applyUserActions([
+      ['UpdateRecord', 'Durum', 1, { Aktif_No: deger }]
+    ]).catch(e => console.log('yazma hatası:', e));
   });
 </script>
 </body>
