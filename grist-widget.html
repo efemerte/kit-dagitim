@@ -57,12 +57,15 @@
   }
 
   async function durumYaz(gogusNo) {
+    console.log('durumYaz çağrıldı:', gogusNo);
+    console.log('grist.docApi:', typeof grist.docApi);
     try {
-      await grist.docApi.applyUserActions([
+      const sonuc = await grist.docApi.applyUserActions([
         ['UpdateRecord', 'Durum', 1, { Aktif_No: gogusNo }]
       ]);
+      console.log('başarılı:', sonuc);
     } catch(e) {
-      console.log('yazma hatası:', e);
+      console.log('hata:', e.message);
     }
   }
 
