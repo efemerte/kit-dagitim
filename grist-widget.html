@@ -89,7 +89,8 @@
 
       if (rowIds.length >= MAX_GECMIS) {
         // En eski satırı sil
-        actions.push(['RemoveRecord', 'Durum', rowIds[rowIds.length - 1]]);
+        const enKucukId = Math.min(...rowIds);
+actions.push(['RemoveRecord', 'Durum', enKucukId]);
       }
 
       // En başa yeni satır ekle
