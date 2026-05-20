@@ -40,44 +40,41 @@
 
   function render(liste) {
     document.body.innerHTML = '';
+    const ilk = liste[0];
     liste.forEach((no, i) => {
-      if (!no) return;
       const div = document.createElement('div');
-      div.className = 'numara-item' + (i === 0 ? ' flash' : '');
+      const yeniFlash = (i === 0 && ilk !== sonIlk);
+      div.className = 'numara-item' + (yeniFlash ? ' flash' : '');
       div.textContent = no;
       document.body.appendChild(div);
-      if (i === 0) setTimeout(() => div.classList.remove('flash'), 400);
+      if (yeniFlash) setTimeout(() => div.classList.remove('flash'), 400);
     });
+    sonIlk = ilk;
   }
 
-  grist.ready({ requiredAccess: 'read table' });
+  async function oku() {
+    try {
+      const tablo = await grist.docApi.fetchTable('Durum');
+      const ids   = tablo.id;
+      const degerler = tablo[KOL];
 
-  grist.onRecords(function(records) {
-    if (!records || records.length === 0) return;
+      // ID'ye göre azalan sırala (en yüksek ID = en yeni)
+      const satirlar = ids.map((id, i) => ({ id, deger: degerler[i] }))
+        .filter(s => s.deger)
+        .sort((a, b) => b.id - a.id)
+        .map(s => s.deger);
 
-    // Tüm satırları al, boşları filtrele
-    const liste = records
-      .map(r => r[KOL])
-      .filter(v => v);
+      if (satirlar.length > 0) render(satirlar);
+    } catch(e) {}
+  }
 
-    // En üstteki değişmediyse flash yapma
-    const ilk = liste[0];
-    if (ilk === sonIlk) {
-      render(liste);
-      return;
-    }
-    sonIlk = ilk;
+  grist.ready({ requiredAccess: 'full' });
 
-    // Yeni değer geldi, flash ile göster
-    document.body.innerHTML = '';
-    liste.forEach((no, i) => {
-      const div = document.createElement('div');
-      div.className = 'numara-item' + (i === 0 ? ' flash' : '');
-      div.textContent = no;
-      document.body.appendChild(div);
-      if (i === 0) setTimeout(() => div.classList.remove('flash'), 400);
-    });
-  });
+  // Hazır olunca polling başlat
+  setTimeout(function() {
+    oku();
+    setInterval(oku, 1500);
+  }, 500);
 </script>
 </body>
 </html>
