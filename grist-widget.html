@@ -19,7 +19,11 @@
       overflow: hidden;
       gap: 16px;
     }
-
+    .isim {
+      font-size: 4vw;
+      color: #888;
+      font-weight: 500;
+    }
     .secili-no {
       font-size: 14vw;
       font-weight: 900;
@@ -27,17 +31,7 @@
       color: #666;
       transition: all 0.2s ease;
     }
-
-    .secili-no.onaylandi {
-      color: #4a7cf7;
-    }
-
-    .isim {
-      font-size: 4vw;
-      color: #888;
-      font-weight: 500;
-    }
-
+    .secili-no.onaylandi { color: #4a7cf7; }
     .onayla-btn {
       padding: 16px 48px;
       background: #4a7cf7;
@@ -50,23 +44,9 @@
       transition: all 0.15s ease;
       margin-top: 8px;
     }
-
-    .onayla-btn:active {
-      transform: scale(0.95);
-      background: #3a6ae0;
-    }
-
-    .onayla-btn:disabled {
-      background: #333;
-      color: #666;
-      cursor: default;
-    }
-
-    .durum {
-      font-size: 3vw;
-      color: #555;
-      min-height: 1.5em;
-    }
+    .onayla-btn:active { transform: scale(0.95); background: #3a6ae0; }
+    .onayla-btn:disabled { background: #333; color: #666; cursor: default; }
+    .durum { font-size: 3vw; color: #555; min-height: 1.5em; }
   </style>
 </head>
 <body>
@@ -77,17 +57,28 @@
 
 <script>
   let mevcutNo = null;
-
-  const noEl = document.getElementById('no');
-  const isimEl = document.getElementById('isim');
-  const btn = document.getElementById('btn');
+  const noEl    = document.getElementById('no');
+  const isimEl  = document.getElementById('isim');
+  const btn     = document.getElementById('btn');
   const durumEl = document.getElementById('durum');
+
+  function guncelle(record) {
+    if (!record) return;
+    const no    = record.Gogus_No || '';
+    const ad    = record.Ad    || '';
+    const soyad = record.Soyad || '';
+    mevcutNo = no || null;
+    noEl.textContent   = no || '—';
+    isimEl.textContent = (ad + ' ' + soyad).trim() || 'Satır seçin';
+    noEl.classList.remove('onaylandi');
+    btn.disabled   = !mevcutNo;
+    durumEl.textContent = '';
+  }
 
   btn.addEventListener('click', function() {
     if (!mevcutNo) return;
     btn.disabled = true;
     durumEl.textContent = 'Yazılıyor...';
-
     grist.docApi.applyUserActions([
       ['UpdateRecord', 'Durum', 1, { Aktif_No: mevcutNo }]
     ]).then(function() {
@@ -96,35 +87,23 @@
       setTimeout(function() {
         durumEl.textContent = '';
         noEl.classList.remove('onaylandi');
+        btn.disabled = false;
       }, 1500);
     }).catch(function(e) {
-      durumEl.textContent = 'Hata: ' + e;
+      durumEl.textContent = 'Hata: ' + e.message;
       btn.disabled = false;
     });
   });
 
-  grist.ready({
-    requiredAccess: 'full',
-    columns: [
-      { name: 'Gogus_No', title: 'Göğüs No', optional: true },
-      { name: 'Ad', title: 'Ad', optional: true },
-      { name: 'Soyad', title: 'Soyad', optional: true }
-    ]
+  grist.ready({ requiredAccess: 'full' });
+
+  // İki yöntem birden — hangisi çalışırsa
+  grist.onRecord(function(record) {
+    guncelle(record);
   });
 
-  grist.onRecord(function(record, mappings) {
-    if (!record) return;
-    const mapped = grist.mapColumnNames(record, mappings) || record;
-    const no = mapped.Gogus_No || record.Gogus_No || record['Göğüs No'] || '';
-    const ad = mapped.Ad || record.Ad || '';
-    const soyad = mapped.Soyad || record.Soyad || '';
-
-    mevcutNo = no || null;
-    noEl.textContent = no || '—';
-    noEl.classList.remove('onaylandi');
-    isimEl.textContent = (ad + ' ' + soyad).trim() || 'Satır seçin';
-    btn.disabled = !mevcutNo;
-    durumEl.textContent = '';
+  grist.on('record', function(record) {
+    guncelle(record);
   });
 </script>
 </body>
