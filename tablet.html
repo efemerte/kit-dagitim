@@ -34,15 +34,14 @@
   </style>
 </head>
 <body>
-
 <script>
-  const KOL_DURUM = 'Aktif_No';
-  const MAX = 5;
-  let gecmis = [];
+  const KOL = 'Aktif_No';
+  let sonIlk = null;
 
-  function renderListe() {
+  function render(liste) {
     document.body.innerHTML = '';
-    gecmis.forEach((no, i) => {
+    liste.forEach((no, i) => {
+      if (!no) return;
       const div = document.createElement('div');
       div.className = 'numara-item' + (i === 0 ? ' flash' : '');
       div.textContent = no;
@@ -51,20 +50,33 @@
     });
   }
 
-  function ekle(deger) {
-    if (gecmis[0] === deger) return;
-    gecmis.unshift(deger);
-    if (gecmis.length > MAX) gecmis.pop();
-    renderListe();
-  }
-
   grist.ready({ requiredAccess: 'read table' });
 
-  // Durum tablosundaki tüm kayıtları dinle
   grist.onRecords(function(records) {
     if (!records || records.length === 0) return;
-    const deger = records[0][KOL_DURUM];
-    if (deger) ekle(deger);
+
+    // Tüm satırları al, boşları filtrele
+    const liste = records
+      .map(r => r[KOL])
+      .filter(v => v);
+
+    // En üstteki değişmediyse flash yapma
+    const ilk = liste[0];
+    if (ilk === sonIlk) {
+      render(liste);
+      return;
+    }
+    sonIlk = ilk;
+
+    // Yeni değer geldi, flash ile göster
+    document.body.innerHTML = '';
+    liste.forEach((no, i) => {
+      const div = document.createElement('div');
+      div.className = 'numara-item' + (i === 0 ? ' flash' : '');
+      div.textContent = no;
+      document.body.appendChild(div);
+      if (i === 0) setTimeout(() => div.classList.remove('flash'), 400);
+    });
   });
 </script>
 </body>
