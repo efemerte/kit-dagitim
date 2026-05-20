@@ -19,11 +19,7 @@
       overflow: hidden;
       gap: 16px;
     }
-    .isim {
-      font-size: 4vw;
-      color: #888;
-      font-weight: 500;
-    }
+    .isim { font-size: 4vw; color: #888; font-weight: 500; }
     .secili-no {
       font-size: 14vw;
       font-weight: 900;
@@ -56,6 +52,7 @@
   <div class="durum" id="durum"></div>
 
 <script>
+  const MAX_GECMIS = 5;
   let mevcutNo = null;
   const noEl    = document.getElementById('no');
   const isimEl  = document.getElementById('isim');
@@ -71,17 +68,35 @@
     noEl.textContent   = no || '—';
     isimEl.textContent = (ad + ' ' + soyad).trim() || 'Satır seçin';
     noEl.classList.remove('onaylandi');
-    btn.disabled   = !mevcutNo;
+    btn.disabled        = !mevcutNo;
     durumEl.textContent = '';
   }
 
-  btn.addEventListener('click', function() {
+  btn.addEventListener('click', async function() {
     if (!mevcutNo) return;
     btn.disabled = true;
     durumEl.textContent = 'Yazılıyor...';
-    grist.docApi.applyUserActions([
-      ['UpdateRecord', 'Durum', 1, { Aktif_No: mevcutNo }]
-    ]).then(function() {
+
+    try {
+      // Durum tablosundaki mevcut kayıtları oku
+      const tablo = await grist.docApi.fetchTable('Durum');
+      const rowIds = tablo.id; // mevcut satır ID'leri
+      const aktifler = tablo.Aktif_No; // mevcut değerler
+
+      // En eski satırı sil, en üste yeni ekle
+      // Sıralama: en yeni en başta olacak şekilde shift yapıyoruz
+      const actions = [];
+
+      if (rowIds.length >= MAX_GECMIS) {
+        // En eski satırı sil
+        actions.push(['RemoveRecord', 'Durum', rowIds[rowIds.length - 1]]);
+      }
+
+      // En başa yeni satır ekle
+      actions.push(['AddRecord', 'Durum', null, { Aktif_No: mevcutNo }]);
+
+      await grist.docApi.applyUserActions(actions);
+
       noEl.classList.add('onaylandi');
       durumEl.textContent = '✓ Gönderildi';
       setTimeout(function() {
@@ -89,22 +104,17 @@
         noEl.classList.remove('onaylandi');
         btn.disabled = false;
       }, 1500);
-    }).catch(function(e) {
+
+    } catch(e) {
       durumEl.textContent = 'Hata: ' + e.message;
       btn.disabled = false;
-    });
+    }
   });
 
   grist.ready({ requiredAccess: 'full' });
 
-  // İki yöntem birden — hangisi çalışırsa
-  grist.onRecord(function(record) {
-    guncelle(record);
-  });
-
-  grist.on('record', function(record) {
-    guncelle(record);
-  });
+  grist.onRecord(function(record) { guncelle(record); });
+  grist.on('record', function(record) { guncelle(record); });
 </script>
 </body>
 </html>
