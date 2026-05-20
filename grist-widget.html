@@ -112,7 +112,7 @@
     ]
   });
 
-  grist.on('record', function(record, mappings) {
+  grist.onRecord(function(record, mappings) {
     if (!record) return;
     const mapped = grist.mapColumnNames(record, mappings) || record;
     const no = mapped.Gogus_No || record.Gogus_No || record['Göğüs No'] || '';
