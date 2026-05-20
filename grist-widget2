@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Onay Paneli</title>
+  <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0a0a0a;
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+      gap: 16px;
+    }
+
+    .secili-no {
+      font-size: 14vw;
+      font-weight: 900;
+      letter-spacing: -2px;
+      color: #666;
+      transition: all 0.2s ease;
+    }
+
+    .secili-no.onaylandi {
+      color: #4a7cf7;
+    }
+
+    .isim {
+      font-size: 4vw;
+      color: #888;
+      font-weight: 500;
+    }
+
+    .onayla-btn {
+      padding: 16px 48px;
+      background: #4a7cf7;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 5vw;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      margin-top: 8px;
+    }
+
+    .onayla-btn:active {
+      transform: scale(0.95);
+      background: #3a6ae0;
+    }
+
+    .onayla-btn:disabled {
+      background: #333;
+      color: #666;
+      cursor: default;
+    }
+
+    .durum {
+      font-size: 3vw;
+      color: #555;
+      min-height: 1.5em;
+    }
+  </style>
+</head>
+<body>
+  <div class="isim" id="isim">Satır seçin</div>
+  <div class="secili-no" id="no">—</div>
+  <button class="onayla-btn" id="btn" disabled>ONAYLA</button>
+  <div class="durum" id="durum"></div>
+
+<script>
+  let mevcutNo = null;
+
+  const noEl = document.getElementById('no');
+  const isimEl = document.getElementById('isim');
+  const btn = document.getElementById('btn');
+  const durumEl = document.getElementById('durum');
+
+  btn.addEventListener('click', function() {
+    if (!mevcutNo) return;
+    btn.disabled = true;
+    durumEl.textContent = 'Yazılıyor...';
+
+    grist.docApi.applyUserActions([
+      ['UpdateRecord', 'Durum', 1, { Aktif_No: mevcutNo }]
+    ]).then(function() {
+      noEl.classList.add('onaylandi');
+      durumEl.textContent = '✓ Gönderildi';
+      setTimeout(function() {
+        durumEl.textContent = '';
+        noEl.classList.remove('onaylandi');
+      }, 1500);
+    }).catch(function(e) {
+      durumEl.textContent = 'Hata: ' + e;
+      btn.disabled = false;
+    });
+  });
+
+  grist.ready({
+    requiredAccess: 'full',
+    columns: [
+      { name: 'Gogus_No', title: 'Göğüs No', optional: true },
+      { name: 'Ad', title: 'Ad', optional: true },
+      { name: 'Soyad', title: 'Soyad', optional: true }
+    ]
+  });
+
+  grist.onRecord(function(record, mappings) {
+    if (!record) return;
+    const mapped = grist.mapColumnNames(record, mappings) || record;
+    const no = mapped.Gogus_No || record.Gogus_No || record['Göğüs No'] || '';
+    const ad = mapped.Ad || record.Ad || '';
+    const soyad = mapped.Soyad || record.Soyad || '';
+
+    mevcutNo = no || null;
+    noEl.textContent = no || '—';
+    noEl.classList.remove('onaylandi');
+    isimEl.textContent = (ad + ' ' + soyad).trim() || 'Satır seçin';
+    btn.disabled = !mevcutNo;
+    durumEl.textContent = '';
+  });
+</script>
+</body>
+</html>
