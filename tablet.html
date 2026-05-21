@@ -59,10 +59,11 @@
       const degerler = tablo[KOL];
 
       // ID'ye göre azalan sırala (en yüksek ID = en yeni)
-      const satirlar = ids.map((id, i) => ({ id, deger: degerler[i] }))
-        .filter(s => s.deger)
-        .sort((a, b) => a.id - b.id)
-        .map(s => s.deger);
+      const zamanlar = tablo['Zaman'] || [];
+const satirlar = ids.map((id, i) => ({ id, deger: degerler[i], zaman: zamanlar[i] || 0 }))
+  .filter(s => s.deger)
+  .sort((a, b) => b.zaman - a.zaman)
+  .map(s => s.deger);
 
       if (satirlar.length > 0) render(satirlar);
     } catch(e) {}
