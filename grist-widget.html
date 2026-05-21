@@ -94,7 +94,7 @@ actions.push(['RemoveRecord', 'Durum', enKucukId]);
       }
 
       // En başa yeni satır ekle
-      actions.push(['AddRecord', 'Durum', null, { Aktif_No: mevcutNo }]);
+      actions.push(['AddRecord', 'Durum', null, { Aktif_No: mevcutNo, Zaman: Date.now() / 1000 }]);
 
       await grist.docApi.applyUserActions(actions);
 
