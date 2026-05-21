@@ -61,7 +61,7 @@
       // ID'ye göre azalan sırala (en yüksek ID = en yeni)
       const satirlar = ids.map((id, i) => ({ id, deger: degerler[i] }))
         .filter(s => s.deger)
-        .sort((a, b) => b.id - a.id)
+        .sort((a, b) => a.id - b.id)
         .map(s => s.deger);
 
       if (satirlar.length > 0) render(satirlar);
